@@ -1,4 +1,4 @@
-name: workflow for Node using Snyk security scan
+name: Security scan with Snyk
 
 on: push
 
@@ -6,12 +6,20 @@ jobs:
   security:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
 
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@master
-        continue-on-error: true
+        # Removed continue-on-error: build will fail on vulnerabilities
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-            args: --workdir=/github/workspace/my-app
+          args: --severity-threshold=high --workdir=/github/workspace/my-app
+
+      - name: Upload Snyk report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: snyk-report
+          path: snyk-report.json
+          if-no-files-found: ignore

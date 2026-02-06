@@ -1,21 +1,31 @@
-# WIP Denv-r template project
+# Denv-r Template Project
 
-> [!WARNING]
-> Work In Progress
-> All best pratices aren't applied for now :
-> - environments
-> - tests
-> - ...
+> [!TIP]
+> **🎓 Formation DevSecOps disponible !**
+> Ce repo sert de support à un workshop de 2 jours. Consultez [WORKSHOP.md](./WORKSHOP.md) pour le programme complet.
 
-This project is a template to :
+## 📚 Ressources Formation
 
-- build and push a contenerized NextJS app in Github registry
-- managed VMs in Denv-r cloud environment using Terraform*
-- deploy the previous contenerized app on it/them using Ansible
+| Ressource | Description |
+|-----------|-------------|
+| [WORKSHOP.md](./WORKSHOP.md) | Programme structuré Jour 1 + Jour 2 |
+| [theory/](./theory/) | Modules théoriques (DevOps, Cloud, GitOps) |
+| [exercises/](./exercises/) | Exercices pratiques progressifs |
+| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) | Guide de résolution d'erreurs |
+| [AI_TRAPS.md](./AI_TRAPS.md) | Pièges IA pour développer l'esprit critique |
+
+---
+
+This project is a template to:
+
+- Build and push a containerized NextJS app to GitHub registry
+- Manage VMs in Denv-r cloud environment using Terraform
+- Deploy the containerized app on VMs using Ansible
 
 > [!NOTE]
-> This Terraform project is just for Denv-r cloud env using the Warren provider
-> But, you still can use the CI and Ansible to build, publish and deploy your NextJS app in your VMs. You just need to create an inventory with their IP address (The VMs must be available through SSH)
+> This Terraform project is configured for Denv-r cloud using the Warren provider.
+> You can also use the CI and Ansible to build, publish and deploy your NextJS app on your own VMs accessible via SSH.
+
 
 ## Prerequisites
 
