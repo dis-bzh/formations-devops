@@ -1,165 +1,208 @@
-# 🎯 Exercice 09 : Full Deployment (Capstone)
+# 🎯 Exercice 09 : Plateforme IA Sécurisée (Capstone)
 
-> 🔴 Niveau : Avancé | ⏱️ Durée : 45 min
+> 🔴 Niveau : Avancé | ⏱️ Durée : 60 min
 
 ## Objectif
 
-Déployer l'application complète en utilisant tout ce que vous avez appris.
+Déployer une plateforme IA sécurisée utilisant tout ce que vous avez appris :
+- **Anonymisation** des données sensibles avant envoi
+- **Proxy LLM** pour accès unifié à Claude/GPT/Gemini
+- **Infrastructure** Terraform + configuration Ansible
+
+## Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                    Plateforme IA Sécurisée                       │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│   Utilisateur ──► Anonymizer ──► LiteLLM ──► Claude/GPT/Gemini   │
+│                   (Scrubadub)     (Proxy)     (APIs publiques)   │
+│                   :5001           :8000                          │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
 
 ## Prérequis
 
 - Tous les exercices précédents complétés
 - VM cloud disponible (exercice 05)
 - Docker, Terraform, Ansible fonctionnels
+- **API Key** fournie par le formateur (OpenAI, Anthropic ou Google)
 
 ## Instructions
 
-### Vue d'ensemble
+### Étape 1 : Explorer la stack IA (10 min)
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Pipeline Complet                         │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  1. Build    ──►  2. Push     ──►  3. Deploy   ──►  4. Verify  │
-│  (Docker)        (Registry)       (Ansible)        (Test)      │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Étape 1 : Build de l'image (10 min)
-
-1. **Construire l'image localement**
+1. **Découvrir le dossier capstone**
    ```bash
-   cd ~/chemin/vers/denvr
+   cd ~/chemin/vers/denvr/capstone
+   ls -la
+   ```
+
+2. **Comprendre les composants**
+
+   | Fichier | Rôle |
+   |---------|------|
+   | `docker-compose.yml` | Orchestre les 2 services |
+   | `anonymizer/` | Service Python de masquage PII |
+   | `litellm-config.yaml` | Configuration des modèles LLM |
+   | `.env.example` | Template pour les API keys |
+
+3. **Analyser l'anonymizer**
+   ```bash
+   cat anonymizer/app.py
+   cat anonymizer/Dockerfile
+   ```
+
+   **Questions :**
+   - [ ] Quel framework Python est utilisé ?
+   - [ ] Quels types de PII sont détectés ?
+   - [ ] Le Dockerfile utilise-t-il un multi-stage build ?
+
+### Étape 2 : Tester en local (15 min)
+
+1. **Configurer les API keys**
+   ```bash
+   cp .env.example .env
+   # Éditer .env avec la clé fournie par le formateur
+   nano .env
+   ```
+
+2. **Lancer la stack**
+   ```bash
+   docker-compose up -d --build
+   docker-compose ps
+   ```
+
+3. **Tester l'anonymizer**
+   ```bash
+   # Health check
+   curl http://localhost:5001/health
    
-   docker build -t formation-app:v1 .
+   # Anonymiser du texte
+   curl -X POST http://localhost:5001/anonymize \
+     -H "Content-Type: application/json" \
+     -d '{"text": "Mon email est jean.dupont@entreprise.fr et mon tel 0612345678"}'
    ```
 
-2. **Tester localement**
-   ```bash
-   docker run -d -p 8080:80 --name test-app formation-app:v1
-   curl http://localhost:8080
-   docker stop test-app && docker rm test-app
+   **Résultat attendu :**
+   ```json
+   {
+     "anonymized": "Mon email est {{EMAIL}} et mon tel {{PHONE}}",
+     "original_length": 58,
+     "anonymized_length": 42
+   }
    ```
 
-### Étape 2 : Push vers un registry (10 min)
-
-**Option A : GitHub Container Registry (ghcr.io)**
-
-```bash
-# Se connecter
-echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
-
-# Taguer
-docker tag formation-app:v1 ghcr.io/USERNAME/formation-app:v1
-
-# Pousser
-docker push ghcr.io/USERNAME/formation-app:v1
-```
-
-**Option B : Docker Hub**
-
-```bash
-# Se connecter
-docker login
-
-# Taguer et pousser
-docker tag formation-app:v1 USERNAME/formation-app:v1
-docker push USERNAME/formation-app:v1
-```
-
-### Étape 3 : Préparer le déploiement (10 min)
-
-1. **Créer un inventory pour votre VM**
+4. **Tester LiteLLM**
    ```bash
-   cat > inventory << EOF
-   [webservers]
-   VM_IP ansible_user=VOTRE_USER ansible_ssh_private_key_file=~/.ssh/votre_cle
+   # Liste des modèles disponibles
+   curl http://localhost:8000/v1/models
+   
+   # Chat completion
+   curl -X POST http://localhost:8000/v1/chat/completions \
+     -H "Content-Type: application/json" \
+     -d '{
+       "model": "gpt-3.5-turbo",
+       "messages": [{"role": "user", "content": "Bonjour, qui es-tu?"}]
+     }'
+   ```
+
+### Étape 3 : Flow complet sécurisé (15 min)
+
+1. **Créer un script de test**
+   ```bash
+   cat > test-flow.sh << 'EOF'
+   #!/bin/bash
+   
+   # Texte avec des données sensibles
+   TEXT="Bonjour, je suis Jean Dupont. Mon email est jean.dupont@entreprise.fr"
+   
+   echo "📝 Texte original:"
+   echo "$TEXT"
+   echo ""
+   
+   # Étape 1: Anonymiser
+   echo "🔒 Anonymisation..."
+   ANON=$(curl -s -X POST http://localhost:5001/anonymize \
+     -H "Content-Type: application/json" \
+     -d "{\"text\": \"$TEXT\"}" | jq -r '.anonymized')
+   
+   echo "Texte anonymisé: $ANON"
+   echo ""
+   
+   # Étape 2: Envoyer au LLM
+   echo "🤖 Envoi au LLM..."
+   RESPONSE=$(curl -s -X POST http://localhost:8000/v1/chat/completions \
+     -H "Content-Type: application/json" \
+     -d "{
+       \"model\": \"gpt-3.5-turbo\",
+       \"messages\": [{\"role\": \"user\", \"content\": \"$ANON\"}]
+     }" | jq -r '.choices[0].message.content')
+   
+   echo "Réponse LLM: $RESPONSE"
    EOF
+   
+   chmod +x test-flow.sh
+   ./test-flow.sh
    ```
 
-2. **Créer un playbook de déploiement**
+2. **Vérifier la protection des données**
+   - Le texte envoyé au LLM ne contient-il plus de PII ?
+   - Les données sensibles restent-elles sur votre infrastructure ?
+
+### Étape 4 : Déployer sur le cloud (20 min)
+
+1. **Préparer le déploiement Ansible**
    ```bash
-   cat > deploy-playbook.yml << 'EOF'
+   # Créer un playbook pour déployer la stack IA
+   cat > deploy-ai-platform.yml << 'EOF'
    ---
-   - name: Deploy containerized app
+   - name: Deploy AI Platform
      hosts: webservers
      become: true
      vars:
-       image_name: "ghcr.io/USERNAME/formation-app:v1"
-       container_name: "formation-app"
-       host_port: 80
-       container_port: 80
+       app_dir: /opt/ai-platform
      
      tasks:
-       - name: Docker is installed
-         ansible.builtin.apt:
-           name: docker.io
+       - name: Create app directory
+         ansible.builtin.file:
+           path: "{{ app_dir }}"
+           state: directory
+           mode: '0755'
+       
+       - name: Copy docker-compose files
+         ansible.builtin.copy:
+           src: "{{ item }}"
+           dest: "{{ app_dir }}/"
+         loop:
+           - docker-compose.yml
+           - litellm-config.yaml
+           - .env
+       
+       - name: Copy anonymizer folder
+         ansible.builtin.copy:
+           src: anonymizer/
+           dest: "{{ app_dir }}/anonymizer/"
+       
+       - name: Start services
+         community.docker.docker_compose:
+           project_src: "{{ app_dir }}"
            state: present
-           update_cache: true
-
-       - name: Docker service started
-         ansible.builtin.service:
-           name: docker
-           state: started
-           enabled: true
-
-       - name: Pull the image
-         community.docker.docker_image:
-           name: "{{ image_name }}"
-           source: pull
-
-       - name: Remove old container if exists
-         community.docker.docker_container:
-           name: "{{ container_name }}"
-           state: absent
-
-       - name: Run the container
-         community.docker.docker_container:
-           name: "{{ container_name }}"
-           image: "{{ image_name }}"
-           ports:
-             - "{{ host_port }}:{{ container_port }}"
-           restart_policy: unless-stopped
-           state: started
+           build: true
    EOF
    ```
 
-### Étape 4 : Déployer (10 min)
-
-1. **Tester la connexion**
+2. **Déployer**
    ```bash
-   ansible -i inventory webservers -m ping
+   ansible-playbook -i inventory deploy-ai-platform.yml
    ```
 
-2. **Exécuter le déploiement**
+3. **Tester depuis le cloud**
    ```bash
-   ansible-playbook -i inventory deploy-playbook.yml
-   ```
-
-3. **Vérifier**
-   ```bash
-   curl http://VM_IP
-   ```
-
-### Étape 5 : Vérification et nettoyage (5 min)
-
-1. **Vérifier l'état du conteneur**
-   ```bash
-   ssh USER@VM_IP "docker ps"
-   ```
-
-2. **Voir les logs**
-   ```bash
-   ssh USER@VM_IP "docker logs formation-app"
-   ```
-
-3. **Nettoyage (optionnel)**
-   ```bash
-   ansible-playbook -i inventory deploy-playbook.yml --tags cleanup
-   # Ou manuellement :
-   ssh USER@VM_IP "docker stop formation-app && docker rm formation-app"
+   curl http://VM_IP:5001/health
+   curl http://VM_IP:8000/v1/models
    ```
 
 ---
@@ -167,11 +210,10 @@ docker push USERNAME/formation-app:v1
 ## 🧪 Validation
 
 ✅ Vous avez réussi si :
-- [ ] L'image est buildée localement
-- [ ] L'image est pushée sur un registry
-- [ ] Le playbook Ansible s'exécute sans erreur
-- [ ] L'application est accessible via l'IP de la VM
-- [ ] Vous avez nettoyé les ressources cloud
+- [ ] L'anonymizer masque correctement les emails et téléphones
+- [ ] LiteLLM répond aux requêtes chat
+- [ ] Le flow complet (anonymize → LLM) fonctionne
+- [ ] La stack est déployée sur le cloud
 
 ---
 
@@ -179,77 +221,67 @@ docker push USERNAME/formation-app:v1
 
 | Problème | Solution |
 |----------|----------|
-| `Permission denied (publickey)` | Vérifier le chemin de la clé SSH |
-| `Connection refused` port 80 | Firewall bloque le port ? |
-| `Cannot pull image` | Registry privé ? Token expiré ? |
-| `Container exits immediately` | `docker logs` pour voir l'erreur |
+| `anonymizer` ne démarre pas | Vérifier `docker-compose logs anonymizer` |
+| LiteLLM erreur 401 | Vérifier les API keys dans `.env` |
+| Requête timeout | API key invalide ou quota dépassé |
+| Port déjà utilisé | `docker-compose down` puis relancer |
 
 ---
 
 ## ✅ Solution
 
 <details>
-<summary>Checklist de déploiement</summary>
+<summary>Commandes complètes</summary>
 
-**Build:**
 ```bash
-docker build -t formation-app:v1 .
-docker run -d -p 8080:80 --name test formation-app:v1
-curl localhost:8080  # Doit répondre
-docker stop test && docker rm test
-```
+cd capstone
 
-**Push:**
-```bash
-export GITHUB_TOKEN="ghp_xxx"
-echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
-docker tag formation-app:v1 ghcr.io/USERNAME/formation-app:v1
-docker push ghcr.io/USERNAME/formation-app:v1
-```
+# Configuration
+cp .env.example .env
+# Éditer .env
 
-**Deploy:**
-```bash
-ansible-playbook -i inventory deploy-playbook.yml
-curl http://VM_IP
+# Lancement
+docker-compose up -d --build
+
+# Tests
+curl http://localhost:5001/health
+curl -X POST http://localhost:5001/anonymize \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Email: test@example.com"}'
+
+curl http://localhost:8000/v1/models
 ```
 
 </details>
 
 ---
 
-## 🤖 Test IA
+## 🤖 Réflexion finale
 
 À la fin de cet exercice, réfléchissez :
 
-> *"Si j'avais demandé à l'IA de faire tout ça pour moi, aurait-elle réussi ?"*
+> *"Pourquoi anonymiser les données avant de les envoyer à un LLM externe ?"*
 
-**Points où l'IA aurait eu du mal :**
-- Connaître votre IP de VM, username, clé SSH
-- Savoir quel registry vous utilisez
-- Debugger une erreur de connexion spécifique à votre environnement
-- Gérer les credentials de manière sécurisée
+**Raisons :**
+1. **RGPD** : Les données personnelles ne doivent pas quitter l'UE sans garanties
+2. **Confidentialité** : Les LLMs peuvent mémoriser les données d'entraînement
+3. **Sécurité** : Réduire la surface d'attaque en cas de breach chez le provider
+4. **Conformité** : Exigences internes de l'entreprise
 
-**Ce que vous avez appris qui vous permet de vérifier l'IA :**
-- La structure d'un Dockerfile multi-stage
-- Le workflow CI/CD (build → push → deploy)
-- Les playbooks Ansible et l'idempotence
-- Les scans de sécurité
+**Ce que vous avez appris :**
+- ✅ Construire un service de protection des données
+- ✅ Utiliser un proxy pour unifier l'accès aux LLMs
+- ✅ Déployer une stack complète avec Docker Compose
+- ✅ Sécuriser une infrastructure DevSecOps
 
 ---
 
 ## 🎓 Félicitations !
 
-Vous avez complété le workshop DevSecOps !
-
-**Compétences acquises :**
-- ✅ Conteneurisation avec Docker
-- ✅ CI/CD avec GitHub Actions
-- ✅ Infrastructure as Code avec Terraform
-- ✅ Configuration Management avec Ansible
-- ✅ Security Scanning
-- ✅ Pensée critique face à l'IA
+Vous avez complété le workshop DevSecOps et déployé votre propre plateforme IA sécurisée !
 
 **Prochaines étapes suggérées :**
-- [ ] Explorer Kubernetes
-- [ ] Approfondir GitOps (Flux/ArgoCD)
-- [ ] Passer une certification cloud (AZ-900, AWS CCP)
+- [ ] Ajouter une UI web (Open WebUI)
+- [ ] Implémenter le logging des requêtes
+- [ ] Ajouter de l'authentification (API keys)
+- [ ] Explorer d'autres détecteurs Scrubadub (noms, adresses)
