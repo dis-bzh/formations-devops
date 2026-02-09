@@ -1,4 +1,4 @@
-# 🎯 Exercice 08 : Security Scan
+# 🎯 Exercice 12 : Security Scan
 
 > 🟡 Niveau : Intermédiaire | ⏱️ Durée : 30 min
 

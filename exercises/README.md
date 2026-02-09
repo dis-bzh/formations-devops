@@ -1,44 +1,47 @@
-# 🎯 Exercices Pratiques
+# 🎓 Index des Exercices - Formation 4 Jours
 
-Index des exercices de la formation DevSecOps.
+## Module DevOps (Jours 1-2)
 
-## Niveaux de difficulté
+### Jour 1 : Culture DevOps & CI/CD
+| # | Exercice | Objectif |
+|---|----------|----------|
+| 01 | [Découverte DevOps](./devops-j1/01-devops-decouverte.md) | Quiz/discussion culture DevOps |
+| 02 | [Premier Workflow](./devops-j1/02-premier-workflow.md) | Premier pipeline GitHub Actions |
+| 03 | [Build & Test](./devops-j1/03-build-test.md) | Automatiser build et tests |
 
-| Icône | Niveau | Description |
-|-------|--------|-------------|
-| 🟢 | Débutant | Premiers pas, guidé |
-| 🟡 | Intermédiaire | Réflexion nécessaire |
-| 🔴 | Avancé | Autonomie requise |
-
----
-
-## Jour 1 : Docker & CI/CD
-
-| # | Exercice | Niveau | Durée |
-|---|----------|--------|-------|
-| 01 | [Docker Basics](./jour-1/01-docker-basics.md) | 🟢 | 45 min |
-| 02 | [Analyse Dockerfile](./jour-1/02-dockerfile-analysis.md) | 🟢 | 30 min |
-| 03 | [Docker Debug](./jour-1/03-docker-debug.md) | 🟡 | 45 min |
-| 04 | [GitHub Actions](./jour-1/04-github-actions.md) | 🟡 | 60 min |
-
-## Jour 2 : Cloud & Sécurité
-
-| # | Exercice | Niveau | Durée |
-|---|----------|--------|-------|
-| 05 | [Cloud Setup](./jour-2/05-cloud-setup.md) | 🟢 | 45 min |
-| 06 | [Terraform Basics](./jour-2/06-terraform-basics.md) | 🟡 | 45 min |
-| 07 | [Ansible Playbook](./jour-2/07-ansible-playbook.md) | 🟡 | 45 min |
-| 08 | [Security Scan](./jour-2/08-security-scan.md) | 🟡 | 30 min |
-| 09 | [Full Deployment](./jour-2/09-full-deployment.md) | 🔴 | 45 min |
+### Jour 2 : Cloud & IaC
+| # | Exercice | Objectif |
+|---|----------|----------|
+| 04 | [Cloud Setup](./devops-j2/04-cloud-setup.md) | Configurer accès denv-r |
+| 05 | [Terraform Basics](./devops-j2/05-terraform-basics.md) | Provisionner une VM |
+| 06 | [Monitoring Intro](./devops-j2/06-monitoring-intro.md) | Logs et healthchecks |
 
 ---
 
-## Structure des exercices
+## Module SysOps (Jours 3-4)
 
-Chaque exercice contient :
-1. **Objectif** - Ce que vous allez apprendre
-2. **Prérequis** - Ce dont vous avez besoin
-3. **Instructions** - Étapes pas à pas
-4. **Validation** - Comment vérifier que ça marche
-5. **Solution** - En cas de blocage (spoiler)
-6. **Test IA** - Expérimenter les limites de l'IA
+### Jour 3 : Containers & Orchestration
+| # | Exercice | Objectif |
+|---|----------|----------|
+| 07 | [Docker Basics](./sysops-j3/07-docker-basics.md) | Commandes Docker essentielles |
+| 08 | [Dockerfile Build](./sysops-j3/08-dockerfile-build.md) | Build image + push DockerHub |
+| 09 | [Docker Compose](./sysops-j3/09-docker-compose.md) | Multi-containers |
+| 10 | [Kubernetes Demo](./sysops-j3/10-kubernetes-demo.md) | Démo K8s local (kind) |
+
+### Jour 4 : Automatisation & Sécurité
+| # | Exercice | Objectif |
+|---|----------|----------|
+| 11 | [Ansible Playbook](./sysops-j4/11-ansible-playbook.md) | Automatiser config serveur |
+| 12 | [Security Scan](./sysops-j4/12-security-scan.md) | Scanner vulnérabilités |
+| 13 | [Capstone](./sysops-j4/13-capstone.md) | Déployer Secure AI Platform |
+
+---
+
+## Progression Capstone "Secure AI Platform"
+
+| Jour | Brique ajoutée |
+|------|----------------|
+| J1 | Repo Git + workflow CI basique |
+| J2 | Infra Terraform + monitoring |
+| J3 | Docker Compose (app + Presidio) |
+| J4 | Security scan + déploiement final |

@@ -1,4 +1,4 @@
-# 🎯 Exercice 06 : Terraform Basics
+# 🎯 Exercice 05 : Terraform Basics
 
 > 🟡 Niveau : Intermédiaire | ⏱️ Durée : 45 min
 

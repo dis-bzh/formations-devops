@@ -1,67 +1,93 @@
 from diagrams import Diagram, Cluster, Edge
 from diagrams.onprem.container import Docker
-from diagrams.onprem.network import Internet, Nginx, Haproxy
+from diagrams.onprem.network import Internet, Nginx
+from diagrams.onprem.mlops import Mlflow
 from diagrams.generic.network import VPN
 from diagrams.generic.os import Ubuntu
 from diagrams.generic.database import SQL
+from diagrams.saas.chat import Slack
+from diagrams.programming.framework import Flask
+from diagrams.custom import Custom
 
-# Configuration du diagramme
-with Diagram("Architecture Cloud Native - All in One VM - Denv-r", show=False, direction="TB"):
-    with Cluster("Denv-r cloud provider"):
+# Diagram 1: Architecture simple - Hello World (my-app)
+with Diagram("Architecture Hello World - VM Unique", show=False, direction="TB", filename="architecture_helloworld"):
+    with Cluster("Denv-r Cloud"):
+        with Cluster("VM Workshop"):
+            nginx = Nginx("Nginx\n:80")
+            app = Docker("my-app\nNext.js\n:3000")
+            nginx >> app
 
-        with Cluster("VM"):
-            VM = [Docker("Frontend"),
-                  Docker("Backend"),
-                  SQL("SQLite")]
+    internet = Internet("HTTP/HTTPS")
+    internet >> nginx
 
-        # Bastion pour sécuriser SSH
-        bastion_vm = VPN("Bastion\n(SSH Access)")
-
-    # Communication SSH (port 22)
-    ssh_traffic = Internet("SSH (22)")
-    ssh_traffic >> bastion_vm >> VM
-
-    # Communication ports 80/443
-    web_traffic = Internet("HTTP/HTTPS")
-    web_traffic >> VM[0]
+    ssh = Internet("SSH (22)")
+    bastion = VPN("Bastion")
+    ssh >> bastion >> nginx
 
 
+# Diagram 2: Architecture Capstone - Plateforme IA Sécurisée
+with Diagram("Architecture Capstone - Plateforme IA Sécurisée", show=False, direction="LR", filename="architecture_capstone"):
+    with Cluster("Denv-r Cloud"):
+        with Cluster("VM Workshop"):
+            with Cluster("Docker Compose"):
+                nginx = Nginx("Nginx\n:80\nRate Limit\nSecurity Headers")
+                gateway = Flask("Gateway\n:4000\nFail-Safe")
+                anonymizer = Flask("Anonymizer\n:5001\nScrubadub + Regex")
+                litellm = Docker("LiteLLM\n:4000\nProxy LLM")
+                
+                nginx >> Edge(label="OpenAI API") >> gateway
+                gateway >> Edge(label="Anonymize") >> anonymizer
+                gateway >> Edge(label="Forward") >> litellm
+
+    # External LLMs
+    with Cluster("Cloud LLM APIs"):
+        openai = Slack("OpenAI\nGPT-3.5/4")
+        claude = Slack("Anthropic\nClaude")
+        gemini = Slack("Google\nGemini")
+    
+    litellm >> Edge(color="blue") >> openai
+    litellm >> Edge(color="orange") >> claude
+    litellm >> Edge(color="green") >> gemini
+
+    # Clients
+    cline = Internet("VS Code\n+ Cline")
+    curl = Internet("curl / API")
+    
+    cline >> Edge(label="localhost:80") >> nginx
+    curl >> nginx
 
 
-
-# Configuration du diagramme
-with Diagram("Architecture Cloud Native - Multiple VMs - Denv-r", show=False, direction="LR"):
-    with Cluster("Denv-r cloud provider"):
-
+# Diagram 3: Architecture Multi-VM (production)
+with Diagram("Architecture Cloud Native - Production Multi-VM", show=False, direction="LR", filename="architecture_production"):
+    with Cluster("Denv-r Cloud"):
         with Cluster("Bastion"):
-            # Bastion pour sécuriser SSH
-            bastion_vm = VPN("SSH Access")
+            bastion = VPN("SSH Access")
         
-        with Cluster("Frontend"):
-            waf_vm = Nginx("Nginx WAF")
-            loadbalancer = Haproxy("LoadBalancer")
+        with Cluster("Frontend / Gateway"):
+            waf = Nginx("Nginx WAF\nRate Limit")
+            gateway = Flask("Gateway\nAnonymizer")
 
-        with Cluster("Backend"): 
-            with Cluster(""):       
-                front_vm = Ubuntu("NextJS-1\nport:443")
-                front_vms = [Ubuntu("NextJS-2"),
-                            Ubuntu("NextJS-n")]            
-            back_vm = Ubuntu("Strapi\nport:1307")
+        with Cluster("Backend AI"):
+            litellm = Docker("LiteLLM")
+            
+        with Cluster("App Servers"):
+            app1 = Ubuntu("App-1")
+            app2 = Ubuntu("App-2")
 
-        with Cluster("Bdd"):
-            bdd = SQL("SQLite\n(port:3306)")
+        with Cluster("Database"):
+            db = SQL("PostgreSQL")
 
-    # Communication SSH (port 22)
-    ssh_traffic = Internet("SSH (22)")
-    ssh_traffic >> Edge(color="red") >> bastion_vm >> Edge(color="red") >> front_vm
-    bastion_vm >> Edge(color="red") >> waf_vm
-
-    # Communication ports 80/443
-    web_traffic = Internet("HTTP/HTTPS")
-    # web_traffic >> Edge(color="darkgreen") >> waf_vm >> Edge(color="darkgreen") >> front_vms
-    web_traffic >> Edge(color="darkgreen") >> waf_vm >> Edge(color="darkgreen") >> loadbalancer >> Edge(color="darkgreen") >> front_vm  
-    waf_vm >> Edge(label="/api") >> back_vm
-
-    # Communication base de données
-    back_vm >> bdd
-    bastion_vm >> Edge(color="red") >> bdd
+    # External
+    ssh = Internet("SSH (22)")
+    ssh >> Edge(color="red") >> bastion >> Edge(color="red") >> waf
+    
+    web = Internet("HTTP/HTTPS")
+    web >> Edge(color="darkgreen") >> waf >> Edge(color="darkgreen") >> gateway >> litellm
+    waf >> Edge(label="/app") >> app1
+    app1 >> db
+    app2 >> db
+    
+    # LLMs
+    with Cluster("Cloud LLMs"):
+        llms = Slack("OpenAI/Claude/Gemini")
+    litellm >> llms

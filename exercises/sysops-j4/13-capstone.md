@@ -1,4 +1,4 @@
-# 🎯 Exercice 09 : Plateforme IA Sécurisée (Capstone)
+# 🎯 Exercice 13 : Plateforme IA Sécurisée (Capstone)
 
 > 🔴 Niveau : Avancé | ⏱️ Durée : 60 min
 

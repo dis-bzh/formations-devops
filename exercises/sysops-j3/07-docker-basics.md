@@ -1,4 +1,4 @@
-# 🎯 Exercice 03 : Docker Debug
+# 🎯 Exercice 07 : Docker Debug
 
 > 🟡 Niveau : Intermédiaire | ⏱️ Durée : 45 min
 

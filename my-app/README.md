@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 my-app — Application Hello World
 
-## Getting Started
+Application Next.js simple servant de base pour le workshop DevSecOps.
 
-First, run the development server:
+## 📋 Objectif pédagogique
+
+Cette application "Hello World" est utilisée pour :
+1. **J1** — Premier workflow CI/CD (build, test, lint)
+2. **J2** — Déploiement sur VM denv-r
+3. **J3** — Containerisation avec Docker
+4. **J4** — Évolution vers le capstone (Plateforme IA Sécurisée)
+
+## 🛠️ Stack technique
+
+| Technologie | Version |
+|-------------|---------|
+| Next.js | 15.1.6 |
+| React | 19.0.0 |
+| TypeScript | 5.x |
+| TailwindCSS | 3.4.1 |
+
+## 🚀 Démarrage rapide
 
 ```bash
+# Installation
+cd my-app
+npm install
+
+# Développement
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# → http://localhost:3000
+
+# Build production
+npm run build
+npm start
+
+# Lint
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🐳 Docker
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Build l'image
+docker build -t my-app .
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Lancer le conteneur
+docker run -p 3000:3000 my-app
+```
 
-## Learn More
+## 📁 Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+my-app/
+├── app/           # Pages Next.js (App Router)
+│   ├── page.tsx   # Page principale
+│   └── layout.tsx # Layout global
+├── public/        # Assets statiques
+├── package.json   # Dépendances
+└── Dockerfile     # Image Docker (à créer en exercice)
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ➡️ Prochaine étape
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Après cette application simple, passez au **Capstone** dans `../capstone/` pour déployer une plateforme IA sécurisée complète.

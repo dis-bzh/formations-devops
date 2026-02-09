@@ -1,4 +1,4 @@
-# 🎯 Exercice 04 : GitHub Actions
+# 🎯 Exercice 02 : GitHub Actions
 
 > 🟡 Niveau : Intermédiaire | ⏱️ Durée : 60 min
 
@@ -26,25 +26,25 @@ Comprendre le pipeline CI/CD du projet et créer un workflow simple.
    | Question | Réponse |
    |----------|---------|
    | Quand ce workflow se déclenche-t-il ? | |
-   | Combien de jobs contient-il ? | |
+   | Quelles permissions sont déclarées ? | |
    | Où l'image est-elle publiée ? | |
-   | Quel secret est utilisé pour l'authentification ? | |
+   | Quel outil scanne l'image Docker ? | |
 
-3. **Analyser `deploy.yml`**
+3. **Analyser `security.yml`**
+
+   | Question | Réponse |
+   |----------|---------|
+   | Combien de jobs de sécurité contient-il ? | |
+   | Quels types de scan sont effectués ? | |
+   | Que fait Gitleaks ? | |
+
+4. **Analyser `deploy.yml`**
 
    | Question | Réponse |
    |----------|---------|
    | Quel événement le déclenche ? | |
    | Y a-t-il une approbation manuelle ? | |
    | Quels outils sont installés ? | |
-
-4. **Analyser `snyk.yml`**
-
-   | Question | Réponse |
-   |----------|---------|
-   | Quand s'exécute-t-il ? | |
-   | Que scanne-t-il ? | |
-   | Le build échoue-t-il si des vulnérabilités sont trouvées ? | |
 
 ### Partie 2 : Créer un workflow simple (30 min)
 
@@ -58,9 +58,14 @@ Comprendre le pipeline CI/CD du projet et créer un workflow simple.
        branches: [main]
      workflow_dispatch:  # Permet de lancer manuellement
 
+   # 🔒 Permissions explicites (bonne pratique DevSecOps)
+   permissions:
+     contents: read
+
    jobs:
      greet:
        runs-on: ubuntu-latest
+       timeout-minutes: 5  # Évite les jobs qui tournent indéfiniment
        steps:
          - name: Checkout
            uses: actions/checkout@v4
@@ -76,25 +81,18 @@ Comprendre le pipeline CI/CD du projet et créer un workflow simple.
    EOF
    ```
 
-2. **Comprendre la syntaxe**
+2. **Comprendre les bonnes pratiques DevSecOps**
 
    ```yaml
-   name: Hello World          # Nom du workflow
+   # ✅ Bonne pratique : permissions explicites
+   permissions:
+     contents: read  # Seulement ce qui est nécessaire
    
-   on:                        # Déclencheurs
-     push:
-       branches: [main]       # Sur push vers main
-     workflow_dispatch:       # + bouton manuel
+   # ✅ Bonne pratique : timeout
+   timeout-minutes: 5
    
-   jobs:                      # Liste des jobs
-     greet:                   # Nom du job
-       runs-on: ubuntu-latest # Runner
-       steps:                 # Étapes du job
-         - name: Checkout     # Nom de l'étape
-           uses: actions/checkout@v4  # Action réutilisable
-         
-         - name: Say Hello
-           run: echo "..."    # Commande shell
+   # ✅ Bonne pratique : version pinning
+   uses: actions/checkout@v4  # Pas @latest ou @main
    ```
 
 3. **Ajouter une étape de validation**
@@ -119,8 +117,13 @@ Le projet utilise des **dépendances entre workflows** :
 push tag → build.yml → deploy.yml
               ↓            ↓
          Build image   Terraform + Ansible
-              ↓            ↓
-         Push GHCR    Deploy to VM
+         Trivy scan         ↓
+              ↓        Deploy to VM
+         Push GHCR
+
+Sur chaque push → security.yml
+                     ↓
+               Snyk + Gitleaks + CodeQL
 ```
 
 Regardez comment `deploy.yml` attend `build.yml` :
@@ -134,12 +137,42 @@ on:
 
 ---
 
+## 🔒 Bonnes pratiques DevSecOps dans les pipelines
+
+### Implémentées dans ce projet
+
+| Pratique | Fichier | Description |
+|----------|---------|-------------|
+| **Permissions explicites** | Tous | `permissions:` avec moindre privilège |
+| **Timeouts** | Tous | Évite les jobs infinis |
+| **Version pinning** | Tous | `@v4` au lieu de `@latest` |
+| **Scan dépendances** | security.yml | Snyk pour Node.js |
+| **Scan secrets** | security.yml | Gitleaks |
+| **SAST** | security.yml | CodeQL |
+| **Scan images** | build.yml | Trivy |
+| **Manual approval** | deploy.yml | Avant déploiement |
+
+### À explorer (nice-to-have)
+
+| Pratique | Outil | Description |
+|----------|-------|-------------|
+| **SBOM** | Syft, Docker SBOM | Inventaire des composants |
+| **Image signing** | Cosign | Signature cryptographique |
+| **OIDC auth** | GitHub OIDC | Authentification sans secrets |
+| **Attestations** | SLSA | Provenance des artefacts |
+| **Policy as Code** | OPA, Kyverno | Politiques automatisées |
+
+> 💬 **Discussion** : Quelles pratiques nice-to-have seraient prioritaires dans votre contexte ?
+
+---
+
 ## 🧪 Validation
 
 ✅ Vous avez réussi si :
 - [ ] Vous pouvez expliquer quand chaque workflow se déclenche
 - [ ] Votre workflow `hello.yml` s'exécute (si vous avez pushé)
 - [ ] Vous comprenez la différence entre `uses:` et `run:`
+- [ ] Vous savez pourquoi les `permissions:` sont importantes
 
 ---
 
@@ -160,9 +193,16 @@ on:
 | Question | Réponse |
 |----------|---------|
 | Déclencheur | Push d'un tag (`tags: '*'`) |
-| Nombre de jobs | 2 (version + docker) |
+| Permissions | `contents: read`, `packages: write` |
 | Registry | `ghcr.io` (GitHub Container Registry) |
-| Secret auth | `GITHUB_TOKEN` (automatique) |
+| Scan image | Trivy (`aquasecurity/trivy-action`) |
+
+**security.yml :**
+| Question | Réponse |
+|----------|---------|
+| Nombre de jobs | 3 (dependency, secret, sast) |
+| Types de scan | Dépendances (Snyk), Secrets (Gitleaks), Code (CodeQL) |
+| Gitleaks | Détecte les secrets/clés API dans le code |
 
 **deploy.yml :**
 | Question | Réponse |
@@ -170,13 +210,6 @@ on:
 | Déclencheur | `workflow_run` (après build.yml) |
 | Approbation manuelle | Oui (`trstringer/manual-approval`) |
 | Outils installés | Terraform, Ansible |
-
-**snyk.yml :**
-| Question | Réponse |
-|----------|---------|
-| Déclencheur | Tout push (`on: push`) |
-| Cible scan | Application Node.js (`my-app`) |
-| Bloquant | Non (`continue-on-error: true`) ⚠️ |
 
 </details>
 
@@ -189,8 +222,9 @@ Demandez à une IA :
 > *"Écris un workflow GitHub Actions qui builde une image Docker et la pousse sur Docker Hub"*
 
 **Comparez avec `build.yml` :**
-- L'IA utilise-t-elle le cache (`cache-from: type=gha`) ?
-- Le tagging utilise-t-il la version sémantique ?
+- L'IA déclare-t-elle des `permissions:` explicites ?
+- Y a-t-il un scan de sécurité de l'image ?
 - Les secrets sont-ils bien référencés ?
+- Y a-t-il un `timeout-minutes` ?
 
-**Leçon** : L'IA génère des workflows fonctionnels mais basiques. Les optimisations (cache, versioning, multi-plateforme) nécessitent une connaissance des bonnes pratiques.
+**Leçon** : L'IA génère des workflows fonctionnels mais souvent sans les bonnes pratiques de sécurité. Toujours vérifier et compléter !

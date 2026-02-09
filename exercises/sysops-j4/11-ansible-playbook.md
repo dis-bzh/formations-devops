@@ -1,4 +1,4 @@
-# 🎯 Exercice 07 : Ansible Playbook
+# 🎯 Exercice 11 : Ansible Playbook
 
 > 🟡 Niveau : Intermédiaire | ⏱️ Durée : 45 min
 

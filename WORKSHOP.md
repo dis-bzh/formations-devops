@@ -1,14 +1,15 @@
-# 🎓 Workshop DevSecOps - 2 Jours
+# 🎓 Formation DevSecOps - 4 Jours
 
-> **Problématique** : Comment apprendre les bonnes pratiques DevSecOps à l'heure de l'IA ?
+> **Fil rouge** : Construire une "Secure AI Platform" — déployer une application IA sécurisée de A à Z.
 
 ## 📋 Informations pratiques
 
 | Élément | Détail |
 |---------|--------|
-| **Durée** | 2 jours (14h) |
+| **Durée** | 4 jours (2x2 jours, 28h total) |
+| **Modules** | INFAL198 DevOps (J1-J2) + INFAL122 SysOps (J3-J4) |
 | **Public** | Étudiants, reconversions |
-| **Niveau requis** | Bases WSL/Linux |
+| **Niveau requis** | Bases réseau (IP, DNS), Linux (commandes de base), Git |
 | **Matériel** | PC avec WSL2, Docker Desktop |
 
 ---
@@ -36,72 +37,127 @@ git --version
 ### Comptes à créer
 
 - [ ] Compte GitHub : [github.com/signup](https://github.com/signup)
-- [ ] Compte Cloud (un des suivants) :
-  - Azure for Students : [azure.microsoft.com/free/students](https://azure.microsoft.com/free/students) ⭐
-  - OU token Denv-r (fourni par formateur)
+- [ ] Compte Docker Hub : [hub.docker.com](https://hub.docker.com)
+- [ ] Compte Cloud : Token Denv-r (fourni par formateur)
 
 ---
 
-## 📅 Programme Jour 1 : Conteneurs & CI/CD
+## 📅 Module 1 : DevOps (INFAL198) — Jours 1-2
 
-### Matin (9h - 12h30)
+### Jour 1 : Culture DevOps & CI/CD
+
+#### Matin (9h - 12h30)
 
 | Horaire | Module | Contenu |
 |---------|--------|---------|
-| 9h00 | ☕ **Accueil** | Présentation, tour de table |
+| 9h00 | ☕ **Accueil** | Présentation, tour de table, objectifs |
 | 9h30 | 📖 **Théorie** | [Histoire DevOps](./theory/01-devops-histoire.md) |
 | 10h15 | ☕ **Pause** | |
-| 10h30 | 📖 **Théorie** | Introduction Docker |
-| 11h00 | 🎯 **Exercice** | [01 - Docker Basics](./exercises/jour-1/01-docker-basics.md) |
-| 11h45 | 🎯 **Exercice** | [02 - Analyse Dockerfile](./exercises/jour-1/02-dockerfile-analysis.md) |
+| 10h30 | 📖 **Théorie** | [Introduction CI/CD](./theory/05-cicd-introduction.md) |
+| 11h15 | 🎯 **Exercice** | [01 - Découverte DevOps](./exercises/devops-j1/01-devops-decouverte.md) |
 
-### Après-midi (14h - 17h30)
+#### Après-midi (14h - 17h30)
 
 | Horaire | Module | Contenu |
 |---------|--------|---------|
-| 14h00 | 🎯 **Exercice** | [03 - Docker Debug](./exercises/jour-1/03-docker-debug.md) |
+| 14h00 | 🎯 **Exercice** | [02 - Premier Workflow](./exercises/devops-j1/02-premier-workflow.md) |
 | 15h00 | ☕ **Pause** | |
-| 15h15 | 📖 **Théorie** | Introduction CI/CD, GitHub Actions |
-| 15h45 | 🎯 **Exercice** | [04 - GitHub Actions](./exercises/jour-1/04-github-actions.md) |
-| 16h45 | 🤖 **Discussion** | IA et DevOps : limites et bon usage |
+| 15h15 | 🎯 **Exercice** | [03 - Build & Test](./exercises/devops-j1/03-build-test.md) |
+| 16h30 | 🤖 **Discussion** | IA et DevOps : limites et bon usage |
 | 17h15 | 📝 **Debrief** | Q&A, preview Jour 2 |
+
+**🔨 Capstone J1** : Créer le repo Git de la Secure AI Platform + premier workflow CI
 
 ---
 
-## 📅 Programme Jour 2 : Cloud & Sécurité
+### Jour 2 : Cloud & IaC
 
-### Matin (9h - 12h30)
+#### Matin (9h - 12h30)
 
 | Horaire | Module | Contenu |
 |---------|--------|---------|
 | 9h00 | 📖 **Théorie** | [Cloud Fondamentaux](./theory/02-cloud-fondamentaux.md) |
 | 9h45 | 📖 **Théorie** | [Comparatif Cloud](./theory/04-comparatif-cloud.md) |
 | 10h15 | ☕ **Pause** | |
-| 10h30 | 🎯 **Exercice** | [05 - Cloud Setup](./exercises/jour-2/05-cloud-setup.md) |
-| 11h15 | 📖 **Théorie** | Introduction Terraform (IaC) |
-| 11h45 | 🎯 **Exercice** | [06 - Terraform Basics](./exercises/jour-2/06-terraform-basics.md) |
+| 10h30 | 🎯 **Exercice** | [04 - Cloud Setup](./exercises/devops-j2/04-cloud-setup.md) |
+| 11h15 | 🎯 **Exercice** | [05 - Terraform Basics](./exercises/devops-j2/05-terraform-basics.md) |
 
-### Après-midi (14h - 17h30)
+#### Après-midi (14h - 17h30)
 
 | Horaire | Module | Contenu |
 |---------|--------|---------|
-| 14h00 | 📖 **Théorie** | Introduction Ansible |
-| 14h30 | 🎯 **Exercice** | [07 - Ansible Playbook](./exercises/jour-2/07-ansible-playbook.md) |
-| 15h15 | ☕ **Pause** | |
-| 15h30 | 📖 **Théorie** | [GitOps](./theory/03-gitops-evolution.md) + DevSecOps |
-| 16h00 | 🎯 **Exercice** | [08 - Security Scan](./exercises/jour-2/08-security-scan.md) |
-| 16h45 | 🎯 **Capstone** | [09 - Full Deployment](./exercises/jour-2/09-full-deployment.md) |
-| 17h15 | 📝 **Clôture** | Retour d'expérience, ressources pour aller plus loin |
+| 14h00 | 📖 **Théorie** | [Monitoring & SRE](./theory/06-monitoring-sre.md) |
+| 14h45 | 🎯 **Exercice** | [06 - Monitoring Intro](./exercises/devops-j2/06-monitoring-intro.md) |
+| 15h30 | ☕ **Pause** | |
+| 15h45 | 📝 **Synthèse** | Récap Module DevOps, preview SysOps |
+
+**🔨 Capstone J2** : Infra Terraform VM + observer les logs
+
+---
+
+## 📅 Module 2 : SysOps (INFAL122) — Jours 3-4
+
+### Jour 3 : Containers & Orchestration
+
+#### Matin (9h - 12h30)
+
+| Horaire | Module | Contenu |
+|---------|--------|---------|
+| 9h00 | 📖 **Théorie** | [Introduction Containers](./theory/07-containers-intro.md) |
+| 9h45 | 🎯 **Exercice** | [07 - Docker Basics](./exercises/sysops-j3/07-docker-basics.md) |
+| 10h30 | ☕ **Pause** | |
+| 10h45 | 🎯 **Exercice** | [08 - Dockerfile Build](./exercises/sysops-j3/08-dockerfile-build.md) |
+| 11h30 | 🎯 **Exercice** | [09 - Docker Compose](./exercises/sysops-j3/09-docker-compose.md) |
+
+#### Après-midi (14h - 17h30)
+
+| Horaire | Module | Contenu |
+|---------|--------|---------|
+| 14h00 | 📖 **Théorie** | [Introduction Kubernetes](./theory/08-kubernetes-intro.md) |
+| 14h45 | 🎯 **Démo** | [10 - Kubernetes Demo](./exercises/sysops-j3/10-kubernetes-demo.md) |
+| 15h30 | ☕ **Pause** | |
+| 15h45 | 📝 **Debrief** | Q&A, preview Jour 4 |
+
+**🔨 Capstone J3** : Docker Compose multi-containers (app + Presidio)
+
+---
+
+### Jour 4 : Automatisation & Sécurité
+
+#### Matin (9h - 12h30)
+
+| Horaire | Module | Contenu |
+|---------|--------|---------|
+| 9h00 | 📖 **Théorie** | [GitOps & DevSecOps](./theory/03-gitops-evolution.md) |
+| 9h45 | 🎯 **Exercice** | [11 - Ansible Playbook](./exercises/sysops-j4/11-ansible-playbook.md) |
+| 10h30 | ☕ **Pause** | |
+| 10h45 | 🎯 **Exercice** | [12 - Security Scan](./exercises/sysops-j4/12-security-scan.md) |
+
+#### Après-midi (14h - 17h30)
+
+| Horaire | Module | Contenu |
+|---------|--------|---------|
+| 14h00 | 🎯 **Capstone** | [13 - Secure AI Platform](./exercises/sysops-j4/13-capstone.md) |
+| 16h30 | 🎤 **Démo** | Présentation des projets |
+| 17h00 | 📝 **Clôture** | Retour d'expérience, ressources |
+
+**🔨 Capstone Final** : Déploiement complet de la Secure AI Platform
 
 ---
 
 ## 📚 Ressources
 
 ### Théorie
-- [01 - Histoire DevOps](./theory/01-devops-histoire.md)
-- [02 - Cloud Fondamentaux](./theory/02-cloud-fondamentaux.md)
-- [03 - GitOps](./theory/03-gitops-evolution.md)
-- [04 - Comparatif Cloud](./theory/04-comparatif-cloud.md)
+| # | Module | Jour |
+|---|--------|------|
+| 01 | [Histoire DevOps](./theory/01-devops-histoire.md) | J1 |
+| 02 | [Cloud Fondamentaux](./theory/02-cloud-fondamentaux.md) | J2 |
+| 03 | [GitOps & DevSecOps](./theory/03-gitops-evolution.md) | J4 |
+| 04 | [Comparatif Cloud](./theory/04-comparatif-cloud.md) | J2 |
+| 05 | [Introduction CI/CD](./theory/05-cicd-introduction.md) | J1 |
+| 06 | [Monitoring & SRE](./theory/06-monitoring-sre.md) | J2 |
+| 07 | [Introduction Containers](./theory/07-containers-intro.md) | J3 |
+| 08 | [Introduction Kubernetes](./theory/08-kubernetes-intro.md) | J3 |
 
 ### Exercices
 - [Index des exercices](./exercises/README.md)
@@ -114,19 +170,18 @@ git --version
 
 ## 🎯 Objectifs de la formation
 
-À la fin des 2 jours, vous saurez :
+### ✅ Module DevOps (J1-J2)
+- [ ] Comprendre la culture et les enjeux DevOps
+- [ ] Créer un pipeline CI/CD avec GitHub Actions
+- [ ] Provisionner une infrastructure avec Terraform
+- [ ] Configurer du monitoring basique
 
-### ✅ Jour 1
-- [ ] Créer et exécuter des conteneurs Docker
-- [ ] Lire et modifier un Dockerfile
-- [ ] Comprendre un pipeline CI/CD GitHub Actions
-- [ ] Debugger des erreurs de build
-
-### ✅ Jour 2
-- [ ] Créer des ressources cloud (VM, réseau)
-- [ ] Utiliser Terraform pour l'Infrastructure as Code
-- [ ] Exécuter des playbooks Ansible
-- [ ] Scanner des vulnérabilités de sécurité
+### ✅ Module SysOps (J3-J4)
+- [ ] Créer et publier des images Docker
+- [ ] Orchestrer des conteneurs avec Docker Compose
+- [ ] Comprendre l'architecture Kubernetes (théorie + démo)
+- [ ] Automatiser avec Ansible
+- [ ] Scanner et corriger des vulnérabilités
 
 ### 🧠 Compétences transverses
 - [ ] Savoir quand faire confiance (ou non) à l'IA

@@ -1,4 +1,4 @@
-# 🎯 Exercice 05 : Cloud Setup
+# 🎯 Exercice 04 : Cloud Setup
 
 > 🟢 Niveau : Débutant | ⏱️ Durée : 45 min
 
