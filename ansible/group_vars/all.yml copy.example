@@ -1,0 +1,19 @@
+---
+# ============================================================
+# VARIABLES OBLIGATOIRES — À PERSONNALISER
+# ============================================================
+# Copiez ce fichier et éditez les valeurs :
+#   cp group_vars/all.yml.example group_vars/all/custom.yml
+#
+# ⚠️ Le playbook échouera si 'users' n'est pas defini.
+
+# === Utilisateurs à créer ===
+# Chaque entrée crée un compte système + déploie sa clé SSH publique.
+users:
+  - name: deploy
+    ssh_key: "ssh-ed25519 AAAA_REMPLACER_PAR_VOTRE_CLE deploy@example.com"
+  - name: admin
+    ssh_key: "ssh-ed25519 AAAA_REMPLACER_PAR_VOTRE_CLE admin@example.com"
+
+# Note : 'ssh_allow_users' est calculé automatiquement à partir
+# de cette liste par defaults.yml. Pas besoin de le redéfinir ici.

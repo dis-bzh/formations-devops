@@ -1,0 +1,14 @@
+---
+# Collections Ansible requises pour ce projet
+# Installation : ansible-galaxy collection install -r requirements.yml
+collections:
+  # Hardening OS + SSH (dev-sec.io)
+  # https://github.com/dev-sec/ansible-collection-hardening
+  - name: devsec.hardening
+    version: ">=9.0.0"
+
+  # Module UFW (community.general.ufw)
+  - name: community.general
+
+  # Module authorized_key (ansible.posix.authorized_key)
+  - name: ansible.posix

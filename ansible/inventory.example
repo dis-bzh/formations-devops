@@ -1,0 +1,35 @@
+# Inventaire Ansible
+#
+# Deux usages possibles :
+#
+# 1. Manuel : copier ce fichier et remplacer les IPs
+#    cp inventory.example inventory.ini
+#    ansible-playbook -i inventory.ini playbook.yml
+#
+# 2. Depuis Terraform : générer l'inventaire à partir des outputs
+#    terraform -chdir=../terraform-azure output -raw bastion_public_ip
+#    terraform -chdir=../terraform-azure output -raw app_private_ip
+#
+#    Exemple one-liner :
+#    ansible-playbook -i "$(terraform -chdir=../terraform-azure output -raw bastion_public_ip)," playbook.yml
+#
+# Le workflow recommandé :
+#   terraform apply → terraform output → inventory → ansible-playbook -i inventory.ini
+
+[bastion]
+# Le bastion a une IP publique (point d'entrée SSH)
+bastion ansible_host=<BASTION_PUBLIC_IP>
+
+[app]
+# La VM applicative est dans un sous-réseau privé,
+# accessible uniquement via le bastion (SSH ProxyJump)
+vm-app ansible_host=<APP_PRIVATE_IP>
+
+[app:vars]
+# Accès via le bastion (SSH jump host)
+ansible_ssh_common_args='-o ProxyJump=ubuntu@<BASTION_PUBLIC_IP>'
+
+[all:vars]
+ansible_user=ubuntu
+ansible_ssh_private_key_file=~/.ssh/id_ed25519
+ansible_python_interpreter=/usr/bin/python3

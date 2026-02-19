@@ -1,0 +1,34 @@
+---
+# Création des utilisateurs et déploiement des clés SSH
+#
+# Les utilisateurs sont définis dans group_vars/all.yml :
+#   users:
+#     - name: deploy
+#       ssh_key: "ssh-ed25519 AAAA..."
+#     - name: admin
+#       ssh_key: "ssh-ed25519 AAAA..."
+#
+# Combiné avec devsec.hardening.ssh_hardening (qui désactive le login
+# par mot de passe), seules les clés SSH déployées ici permettront
+# de se connecter.
+
+- name: "Créer le compte utilisateur {{ item.name }}"
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    shell: /bin/bash
+    create_home: true
+    state: present
+  loop: "{{ users }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: "Déployer la clé SSH publique de {{ item.name }}"
+  ansible.posix.authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ item.ssh_key }}"
+    state: present
+    exclusive: true
+  loop: "{{ users }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.ssh_key is defined

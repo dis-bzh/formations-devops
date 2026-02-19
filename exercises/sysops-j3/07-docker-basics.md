@@ -9,7 +9,7 @@ Apprendre à debugger des erreurs Docker courantes. Ce Dockerfile contient **vol
 ## Prérequis
 
 - Avoir fait les exercices 01 et 02
-- Être dans le dossier du repo `denvr`
+- Être dans le dossier du repo `formations-devops`
 
 ## Instructions
 

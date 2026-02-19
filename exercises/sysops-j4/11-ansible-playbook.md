@@ -222,16 +222,79 @@ cat /tmp/ansible-test.txt
 
 ---
 
+## Partie 5 — Collections Galaxy & Hardening (30 min)
+
+> [!TIP]
+> En entreprise, on ne réinvente pas la roue. On utilise des rôles et collections
+> communautaires maintenus par la communauté. Ansible Galaxy est le "npm/pip" d'Ansible.
+
+### 5.1 Installer une collection externe
+
+```bash
+# Voir les collections requises par le projet
+cat requirements.yml
+
+# Installer toutes les collections déclarées
+ansible-galaxy collection install -r requirements.yml
+```
+
+**Questions :**
+- Où les collections sont-elles installées ? (indice : `ansible.cfg`)
+- Quel module de `community.general` utilise-t-on pour le firewall ?
+
+### 5.2 Explorer un rôle de hardening
+
+Explorez la collection `devsec.hardening` :
+
+```bash
+# Lister les rôles disponibles dans la collection
+ansible-galaxy collection list devsec.hardening
+
+# Regarder les variables du rôle ssh_hardening
+# (cherchez dans group_vars/all.yml quelles variables on utilise)
+```
+
+**Analysez `group_vars/all/defaults.yml` :**
+- Que fait `ssh_server_password_login: false` ?
+- Comment `ssh_allow_users` est-elle calculée automatiquement à partir de la liste `users` (regardez le filtre Jinja2) ?
+- Que se passerait-il si on inversait l'ordre (hardening avant création des users) ?
+
+### 5.3 Dry-run avec `--check --diff`
+
+```bash
+# Simuler l'exécution sans rien modifier (dry-run)
+ansible-playbook playbook.yml --check --diff
+```
+
+**Comprenez la sortie :**
+- Les lignes en **vert** = déjà conforme (idempotent)
+- Les lignes en **jaune** = serait modifié
+- Les lignes en **rouge** = erreur
+
+### 5.4 Lint du playbook (bonus)
+
+```bash
+# Installer ansible-lint
+pip install ansible-lint
+
+# Analyser le playbook
+ansible-lint playbook.yml
+```
+
+Corrigez les éventuels avertissements. Cela enseigne les bonnes pratiques Ansible (nommage, FQCN, idempotence).
+
+---
+
 ## 🤖 Test IA
 
 Demandez à une IA :
 
-> *"Écris un playbook Ansible pour installer Docker sur Ubuntu"*
+> *"Écris un playbook Ansible pour installer Podman sur Ubuntu et créer un utilisateur avec une clé SSH"*
 
 **Analysez :**
-- La clé GPG Docker est-elle ajoutée correctement ?
-- Le repository apt est-il ajouté ?
-- L'utilisateur est-il ajouté au groupe docker ?
-- Le playbook est-il idempotent ?
+- L'IA utilise-t-elle les FQCN (`ansible.builtin.apt`, `ansible.posix.authorized_key`) ?
+- Les tâches sont-elles idempotentes ?
+- L'IA pense-t-elle au hardening SSH (désactiver le login par mot de passe) ?
+- Compare-t-elle Podman (rootless) vs Docker (daemon privilégié) ?
 
-**Leçon** : L'IA génère des playbooks qui "marchent" mais peuvent ne pas suivre les bonnes pratiques officielles Docker.
+**Leçon** : L'IA génère des playbooks fonctionnels mais rarement durcis. La sécurité demande une expertise que les rôles communautaires (`devsec.hardening`) encapsulent.

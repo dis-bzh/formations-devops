@@ -1,12 +1,26 @@
 ---
-- name: Firewall ufw enabled
+# Configuration du firewall UFW — Règles de ports
+#
+# Note : les politiques par défaut (DROP input, ACCEPT output) sont
+# gérées par le rôle devsec.hardening.os_hardening.
+# Ici on ajoute uniquement les règles pour les ports spécifiques.
+#
+# Les ports sont définis dans group_vars/all.yml :
+#   firewall_allowed_ports:
+#     - { port: 22, proto: tcp, rule: limit }
+#     - { port: 80, proto: tcp, rule: allow }
+
+- name: Activer UFW avec politique par défaut deny
   community.general.ufw:
-    state: "enabled"
-    policy: "deny"
+    state: enabled
+    policy: deny
     logging: "on"
 
-- name: Firewall limit ssh
+- name: "Ouvrir le port {{ item.port }}/{{ item.proto }} ({{ item.rule }})"
   community.general.ufw:
-    rule: limit
-    port: ssh
-    proto: tcp
+    rule: "{{ item.rule }}"
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+  loop: "{{ firewall_allowed_ports }}"
+  loop_control:
+    label: "{{ item.port }}/{{ item.proto }}"

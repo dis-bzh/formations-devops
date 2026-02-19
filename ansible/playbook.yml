@@ -1,25 +1,76 @@
 ---
-- name: denvr
+- name: Configuration et hardening des serveurs
   hosts: all
-  tasks:  
-    - name: Include task list in play
+  become: true
+
+  tasks:
+    # ===========================================
+    # 0. Validation des variables obligatoires
+    # ===========================================
+    # Fail fast : mieux vaut un échec explicite que déployer
+    # des clés SSH placeholder par accident.
+
+    - name: "Vérifier que les variables obligatoires sont définies"
+      ansible.builtin.assert:
+        that:
+          - users is defined
+          - users | length > 0
+        fail_msg: |
+          ❌ Variable obligatoire manquante !
+          Copiez le fichier d'exemple et éditez les valeurs :
+            cp group_vars/all.yml.example group_vars/custom.yml
+          Variable requise : users (liste avec name + ssh_key)
+        success_msg: "✅ Variables obligatoires présentes ({{ users | length }} utilisateurs)"
+
+    # ===========================================
+    # 1. Tâches internes (import_tasks)
+    # ===========================================
+    # On utilise import_tasks pour inclure nos fichiers de tâches.
+    # Cela permet de voir le contenu de chaque fichier séparément
+    # tout en gardant un seul point d'entrée (ce playbook).
+
+    - name: Installation des paquets de base
       ansible.builtin.import_tasks:
         file: tasks/packages.yml
-      become: true
 
-    - name: Include task list in play
+    - name: Création des utilisateurs et déploiement des clés SSH
+      ansible.builtin.import_tasks:
+        file: tasks/users.yml
+
+    - name: Configuration du firewall UFW (règles de ports)
       ansible.builtin.import_tasks:
         file: tasks/ufw.yml
-      become: true
 
-    - name: Include task list in play
+    - name: Configuration de Fail2ban
       ansible.builtin.import_tasks:
         file: tasks/fail2ban.yml
-      become: true
+
+    # ===========================================
+    # 2. Rôles externes (devsec.hardening)
+    # ===========================================
+    # On utilise include_role dans tasks: (et non le bloc roles:)
+    # pour contrôler l'ordre d'exécution.
+    #
+    # ⚠️ IMPORTANT : les rôles de hardening DOIVENT s'exécuter APRÈS
+    # nos tâches car :
+    #   - os_hardening met UFW en DROP → nos règles de ports doivent exister
+    #   - ssh_hardening restreint AllowUsers → les users doivent exister
+    #   - ssh_hardening désactive le login par MDP → les clés SSH doivent être déployées
+    #
+    # Note pédagogique : si on utilisait le bloc roles: au lieu de
+    # include_role, les rôles s'exécuteraient AVANT les tasks
+    # (c'est l'ordre par défaut d'Ansible, piège classique).
+
+    - name: Hardening OS (devsec) — sysctl, filesystem, packages, UFW defaults
+      ansible.builtin.include_role:
+        name: devsec.hardening.os_hardening
+
+    - name: Hardening SSH (devsec) — sshd_config, ciphers, AllowUsers
+      ansible.builtin.include_role:
+        name: devsec.hardening.ssh_hardening
 
   handlers:
     - name: Restart fail2ban service
-      service:
+      ansible.builtin.service:
         name: fail2ban
         state: restarted
-      become: true

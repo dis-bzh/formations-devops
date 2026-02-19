@@ -1,16 +1,22 @@
 ---
-- name: Start fail2ban service
-  service:
+# Configuration de Fail2ban
+#
+# Fail2ban surveille les logs et bannit les IPs qui échouent
+# trop de tentatives d'authentification (brute-force).
+#
+# Le handler "Restart fail2ban service" est défini dans le playbook principal.
+
+- name: Démarrer et activer le service Fail2ban
+  ansible.builtin.service:
     name: fail2ban
     state: started
-
-- name: Enable fail2ban service
-  service:
-    name: fail2ban
     enabled: true
 
-- name: Set fail2ban local config
+- name: Déployer la configuration Fail2ban
   ansible.builtin.copy:
     src: fail2ban/jail.local
     dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: "0644"
   notify: Restart fail2ban service

@@ -1,0 +1,4 @@
+---
+users:
+  - name: vde2
+    ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPeFbFAXm1hKy++2RAV0RtCbHIX5y0WlYSKKxv+cFNwC vde@TUF-0126"
