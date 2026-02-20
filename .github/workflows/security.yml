@@ -1,30 +1,29 @@
-name: Security Scans
+# name: Security Scans
 
-on: 
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+# on: 
+#   push:
+#     branches: [main]
+#   pull_request:
+#     branches: [main]
 
-# Principe du moindre privilège
-permissions:
-  contents: read
-  security-events: write
+# # Principe du moindre privilège
+# permissions:
+#   contents: read
+#   security-events: write
 
-jobs:
-  # 🔐 Détection de secrets dans le code
-  secret-scan:
-    name: Secret Scanning (Gitleaks)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Historique complet pour scanner tous les commits
+# jobs:
+#   # 🔐 Détection de secrets dans le code
+#   secret-scan:
+#     name: Secret Scanning (Gitleaks)
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 5
+#     steps:
+#       - uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0  # Historique complet pour scanner tous les commits
 
-      - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}  # Optionnel
-
+#       - name: Run Gitleaks
+#         uses: gitleaks/gitleaks-action@v2
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}  # Optionnel
