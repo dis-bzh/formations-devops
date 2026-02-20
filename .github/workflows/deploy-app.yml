@@ -1,0 +1,85 @@
+name: "🚀 Deploy — Application (Docker Compose)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Tag des images applicatives (ex: latest, v1.2.0, sha-abc1234)"
+        required: false
+        default: "latest"
+
+permissions:
+  contents: read
+
+jobs:
+
+  deploy:
+    name: Ansible — Déploiement applicatif
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du dépôt
+        uses: actions/checkout@v4
+        with:
+          submodules: true  # Récupérer le submodule capstone
+
+      # ── Inventaire ──────────────────────────────────
+
+      - name: Télécharger l'inventaire Terraform (si disponible)
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform_inventory
+          path: ansible/terraform_inventory
+        continue-on-error: true
+
+      - name: Sélectionner l'inventaire
+        id: inventory
+        run: |
+          if [ -f "ansible/terraform_inventory/inventory" ]; then
+            echo "path=ansible/terraform_inventory/inventory" >> $GITHUB_OUTPUT
+            echo "📦 Inventaire Terraform récupéré"
+          else
+            echo "path=ansible/inventory.ini" >> $GITHUB_OUTPUT
+            echo "📋 Utilisation de l'inventaire statique (inventory.ini)"
+          fi
+
+      # ── SSH ─────────────────────────────────────────
+
+      - name: Préparer la clé privée SSH
+        run: |
+          install -m 600 /dev/null private_key.pem
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
+
+      # ── Ansible ─────────────────────────────────────
+
+      - name: Installer Ansible via pip
+        run: |
+          pip install ansible
+
+      - name: Installer les collections Ansible
+        run: |
+          ansible-galaxy collection install -r ansible/requirements.yml -p ansible/collections
+
+      - name: Exécuter le playbook de déploiement applicatif
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+        run: |
+          ansible-playbook \
+            -i ${{ steps.inventory.outputs.path }} \
+            ansible/deploy-app.yml \
+            --private-key private_key.pem \
+            -u ${{ secrets.ANSIBLE_USER }} \
+            --ssh-common-args='-o StrictHostKeyChecking=no' \
+            --extra-vars "image_tag=${{ inputs.image_tag }}" \
+            --extra-vars "domain_name=${{ vars.DOMAIN_NAME }}" \
+            --extra-vars "letsencrypt_email=${{ vars.LETSENCRYPT_EMAIL }}" \
+            --extra-vars "openai_api_key=${{ secrets.OPENAI_API_KEY }}" \
+            --extra-vars "anthropic_api_key=${{ secrets.ANTHROPIC_API_KEY }}" \
+            --extra-vars "gemini_api_key=${{ secrets.GEMINI_API_KEY }}"
+
+      # ── Cleanup ─────────────────────────────────────
+
+      - name: Nettoyage de la clé SSH
+        if: always()
+        run: |
+          rm -f private_key.pem

@@ -1,0 +1,75 @@
+name: "🔧 Deploy — Configuration (Ansible)"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  configure:
+    name: Ansible — Hardening & Configuration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du dépôt
+        uses: actions/checkout@v4
+
+      # ── Inventaire ──────────────────────────────────
+      # On tente de récupérer l'inventaire généré par Terraform.
+      # S'il n'existe pas (premier run, ou expiré), on utilise
+      # l'inventaire statique commité dans le repo.
+
+      - name: Télécharger l'inventaire Terraform (si disponible)
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform_inventory
+          path: ansible/terraform_inventory
+        continue-on-error: true
+
+      - name: Sélectionner l'inventaire
+        id: inventory
+        run: |
+          if [ -f "ansible/terraform_inventory/inventory" ]; then
+            echo "path=ansible/terraform_inventory/inventory" >> $GITHUB_OUTPUT
+            echo "📦 Inventaire Terraform récupéré"
+          else
+            echo "path=ansible/inventory.ini" >> $GITHUB_OUTPUT
+            echo "📋 Utilisation de l'inventaire statique (inventory.ini)"
+          fi
+
+      # ── SSH ─────────────────────────────────────────
+
+      - name: Préparer la clé privée SSH
+        run: |
+          install -m 600 /dev/null private_key.pem
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
+
+      # ── Ansible ─────────────────────────────────────
+
+      - name: Installer Ansible via pip
+        run: |
+          pip install ansible
+
+      - name: Installer les collections Ansible
+        run: |
+          ansible-galaxy collection install -r ansible/requirements.yml -p ansible/collections
+
+      - name: Exécuter le playbook de configuration
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+        run: |
+          ansible-playbook \
+            -i ${{ steps.inventory.outputs.path }} \
+            ansible/playbook.yml \
+            --private-key private_key.pem \
+            -u ${{ secrets.ANSIBLE_USER }} \
+            --ssh-common-args='-o StrictHostKeyChecking=no'
+
+      # ── Cleanup ─────────────────────────────────────
+
+      - name: Nettoyage de la clé SSH
+        if: always()
+        run: |
+          rm -f private_key.pem

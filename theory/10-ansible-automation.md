@@ -137,12 +137,12 @@ Les playbooks décrivent les tâches à exécuter sur les machines cibles.
 
   tasks:
     - name: Mettre à jour les paquets
-      ansible.builtin.apt:
+      ansible.builtin.package:
         update_cache: true
         upgrade: safe
 
     - name: Installer Nginx
-      ansible.builtin.apt:
+      ansible.builtin.package:
         name: nginx
         state: present
 

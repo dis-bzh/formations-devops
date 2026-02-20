@@ -12,3 +12,6 @@ collections:
 
   # Module authorized_key (ansible.posix.authorized_key)
   - name: ansible.posix
+
+  # Module Docker (community.docker.docker_compose_v2)
+  - name: community.docker

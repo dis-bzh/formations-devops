@@ -1,0 +1,35 @@
+---
+- name: Create monitoring directory
+  ansible.builtin.file:
+    path: /opt/monitoring
+    state: directory
+    mode: '0755'
+
+- name: Copy Docker Compose template
+  ansible.builtin.template:
+    src: templates/monitoring/docker-compose.yml.j2
+    dest: /opt/monitoring/docker-compose.yml
+    mode: '0644'
+
+- name: Copy Prometheus config
+  ansible.builtin.template:
+    src: templates/monitoring/prometheus.yml.j2
+    dest: /opt/monitoring/prometheus.yml
+    mode: '0644'
+
+- name: Copy Loki config
+  ansible.builtin.template:
+    src: templates/monitoring/loki-config.yaml.j2
+    dest: /opt/monitoring/loki-config.yaml
+    mode: '0644'
+
+- name: Copy Promtail config
+  ansible.builtin.template:
+    src: templates/monitoring/promtail-config.yaml.j2
+    dest: /opt/monitoring/promtail-config.yaml
+    mode: '0644'
+
+- name: Start Monitoring Stack
+  community.docker.docker_compose_v2:
+    project_src: /opt/monitoring
+    state: present

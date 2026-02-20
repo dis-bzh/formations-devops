@@ -33,6 +33,21 @@
       ansible.builtin.import_tasks:
         file: tasks/packages.yml
 
+    - name: Installation de Docker (App & Monitoring)
+      ansible.builtin.import_tasks:
+        file: tasks/docker.yml
+      when: "'app' in group_names or 'monitoring' in group_names"
+
+    - name: Déploiement de la Stack Monitoring
+      ansible.builtin.import_tasks:
+        file: tasks/monitoring.yml
+      when: "'monitoring' in group_names"
+
+    - name: Déploiement des Agents Monitoring (App)
+      ansible.builtin.import_tasks:
+        file: tasks/monitoring-agent.yml
+      when: "'app' in group_names"
+
     - name: Création des utilisateurs et déploiement des clés SSH
       ansible.builtin.import_tasks:
         file: tasks/users.yml

@@ -1,0 +1,143 @@
+---
+# Playbook de déploiement applicatif — LLM Shield
+#
+# Ce playbook déploie l'application via docker-compose sur les VMs du groupe [app].
+# Il est séparé du playbook de configuration (playbook.yml) pour permettre
+# des déploiements applicatifs indépendants de la configuration d'infrastructure.
+#
+# Usage :
+#   ansible-playbook -i inventory.ini deploy-app.yml \
+#     --extra-vars "image_tag=latest" \
+#     --extra-vars "domain_name=ai.example.com" \
+#     --extra-vars "letsencrypt_email=admin@example.com"
+#
+# Variables attendues (extra-vars ou group_vars) :
+#   - image_tag           : Tag des images (défaut: latest)
+#   - domain_name         : Nom de domaine pour le certificat SSL
+#   - letsencrypt_email   : Email Let's Encrypt
+#   - openai_api_key      : Clé API OpenAI (optionnel)
+#   - anthropic_api_key   : Clé API Anthropic (optionnel)
+#   - gemini_api_key      : Clé API Gemini (optionnel)
+
+- name: Déploiement applicatif — LLM Shield (Docker Compose)
+  hosts: app
+  become: true
+
+  vars:
+    app_dir: /opt/llm-shield
+    image_tag: "latest"
+    # Registry public — pas besoin de login
+    image_registry: "ghcr.io/dis-bzh/llm-shield"
+
+  tasks:
+    # ===========================================
+    # 0. Validation des variables obligatoires
+    # ===========================================
+
+    - name: Vérifier les variables obligatoires
+      ansible.builtin.assert:
+        that:
+          - domain_name is defined
+          - letsencrypt_email is defined
+        fail_msg: |
+          ❌ Variables obligatoires manquantes !
+          Passez-les en extra-vars :
+            --extra-vars "domain_name=ai.example.com"
+            --extra-vars "letsencrypt_email=admin@example.com"
+        success_msg: "✅ Variables obligatoires présentes ({{ domain_name }})"
+
+    # ===========================================
+    # 1. Préparation du répertoire applicatif
+    # ===========================================
+
+    - name: Créer le répertoire applicatif
+      ansible.builtin.file:
+        path: "{{ app_dir }}"
+        state: directory
+        mode: "0750"
+
+    - name: Créer les sous-répertoires nécessaires
+      ansible.builtin.file:
+        path: "{{ app_dir }}/{{ item }}"
+        state: directory
+        mode: "0750"
+      loop:
+        - anonymizer
+
+    # ===========================================
+    # 2. Copie des fichiers de configuration
+    # ===========================================
+
+    - name: Copier docker-compose.yml
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../capstone/docker-compose.yml"
+        dest: "{{ app_dir }}/docker-compose.yml"
+        mode: "0640"
+
+    - name: Copier la configuration Nginx
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../capstone/nginx.conf"
+        dest: "{{ app_dir }}/nginx.conf"
+        mode: "0640"
+
+    - name: Copier la configuration LiteLLM
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../capstone/litellm-config.yaml"
+        dest: "{{ app_dir }}/litellm-config.yaml"
+        mode: "0640"
+
+    - name: Copier les patterns de l'anonymizer
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../capstone/anonymizer/patterns.json"
+        dest: "{{ app_dir }}/anonymizer/patterns.json"
+        mode: "0640"
+
+    # ===========================================
+    # 3. Génération du fichier .env
+    # ===========================================
+
+    - name: Générer le fichier .env
+      ansible.builtin.template:
+        src: templates/env.j2
+        dest: "{{ app_dir }}/.env"
+        mode: "0600"
+
+    # ===========================================
+    # 4. Déploiement Docker Compose
+    # ===========================================
+
+    - name: Pull des images et déploiement
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        pull: always
+        state: present
+      register: compose_result
+
+    - name: Afficher le résultat du déploiement
+      ansible.builtin.debug:
+        msg: "{{ compose_result }}"
+
+    # ===========================================
+    # 5. Healthcheck post-déploiement
+    # ===========================================
+
+    - name: Attendre que le gateway soit accessible
+      ansible.builtin.uri:
+        url: "http://localhost:4000/health"
+        method: GET
+        status_code: 200
+      register: health_result
+      retries: 10
+      delay: 10
+      until: health_result.status == 200
+      ignore_errors: true
+
+    - name: Résultat du healthcheck
+      ansible.builtin.debug:
+        msg: >-
+          {% if health_result.status | default(0) == 200 %}
+          ✅ Application déployée et accessible
+          {% else %}
+          ⚠️ Le healthcheck a échoué — vérifiez les logs avec :
+          docker compose -f {{ app_dir }}/docker-compose.yml logs
+          {% endif %}

@@ -1,0 +1,128 @@
+name: "🏗️ Deploy — Infrastructure (Terraform)"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write  # Pour manual-approval
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+  TF_VAR_api_token: ${{ secrets.API_TOKEN }}
+
+jobs:
+
+  terraform-plan:
+    name: Terraform — init & plan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du dépôt
+        uses: actions/checkout@v4
+
+      - name: Installation de Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.5"
+
+      - name: Substitution des placeholders dans backend.tfvars
+        env:
+          S3_NAME: ${{ vars.S3_BUCKET }}
+          S3_KEY: ${{ vars.S3_KEY }}
+          S3_REGION: ${{ vars.S3_REGION }}
+          S3_ENDPOINT_URL: ${{ vars.S3_ENDPOINT_URL }}
+        run: |
+          cd terraform
+          envsubst < backend.tfvars.example > backend.tfvars
+
+      - name: Terraform Init
+        run: |
+          cd terraform
+          terraform init -backend-config=backend.tfvars
+
+      - name: Terraform Plan
+        run: |
+          cd terraform
+          mkdir -p ${{ github.workspace }}/tfplanoutput
+          terraform plan -out=${{ github.workspace }}/tfplanoutput/tf.plan
+
+      - name: Upload du plan Terraform
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform_plan
+          path: ${{ github.workspace }}/tfplanoutput/
+          if-no-files-found: error
+
+  manual-approval:
+    name: Manual Approval — Terraform Apply
+    runs-on: ubuntu-latest
+    needs: terraform-plan
+    steps:
+      - name: Await Manual Approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: vde-dis
+          minimum-approvals: 1
+          issue-title: "🏗️ Approval Required — Terraform Apply"
+          issue-body: |
+            Un `terraform plan` a été exécuté avec succès.
+            Veuillez approuver ou refuser l'application des changements d'infrastructure.
+
+  terraform-apply:
+    name: Terraform — apply
+    runs-on: ubuntu-latest
+    needs: manual-approval
+    steps:
+      - name: Checkout du dépôt
+        uses: actions/checkout@v4
+
+      - name: Installation de Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.5"
+
+      - name: Substitution des placeholders dans backend.tfvars
+        env:
+          S3_NAME: ${{ vars.S3_BUCKET }}
+          S3_KEY: ${{ vars.S3_KEY }}
+          S3_REGION: ${{ vars.S3_REGION }}
+          S3_ENDPOINT_URL: ${{ vars.S3_ENDPOINT_URL }}
+        run: |
+          cd terraform
+          envsubst < backend.tfvars.example > backend.tfvars
+
+      - name: Terraform Init
+        run: |
+          cd terraform
+          terraform init -backend-config=backend.tfvars
+
+      - name: Download du plan Terraform
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform_plan
+          path: ${{ github.workspace }}/terraform/tfplanoutput
+
+      - name: Terraform Apply
+        run: |
+          cd terraform
+          terraform apply "tfplanoutput/tf.plan"
+
+      - name: Vérifier la présence de l'inventaire
+        run: |
+          cd terraform
+          if [ -f "inventory" ]; then
+            echo "✅ L'inventaire a été généré : $(pwd)/inventory"
+          else
+            echo "❌ Erreur : fichier inventory non trouvé"
+            exit 1
+          fi
+
+      - name: Upload de l'inventaire Ansible
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform_inventory
+          path: terraform/inventory
+          if-no-files-found: error

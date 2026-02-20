@@ -20,17 +20,17 @@ resource "warren_virtual_machine" "denvr_vms" {
     os_name         = "${var.os_name}"
     os_version      = "${var.os_version}"
     vcpu            = each.value.cpu_number
-    network_uuid = resource.warren_network.networks[each.value.network].id
-    reserve_public_ip = false # if true, we can't retrieve the IP with Terraform
-    public_key = "${var.ssh_public_key}"
+    network_uuid    = resource.warren_network.networks[each.value.network].id
+    reserve_public_ip = false
+    public_key      = "${var.ssh_public_key}"
 }
 
-# IPs associated to VMs
+# IPs associated to VMs (Only if public_ip is true)
 resource "warren_floating_ip" "denvr_ip" {
-  for_each   = {
-    for index, vm in var.vms:
-    vm.name => vm
+  for_each = {
+    for vm in var.vms : vm.name => vm
+    if vm.public_ip
   }
-  name = "ip-${var.prefix}-${each.value.name}"
-  assigned_to = resource.warren_virtual_machine.denvr_vms[each.value.name].id
+  name        = "ip-${var.prefix}-${each.value.name}"
+  assigned_to = resource.warren_virtual_machine.denvr_vms[each.key].id
 }

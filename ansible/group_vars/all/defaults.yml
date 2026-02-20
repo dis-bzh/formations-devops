@@ -3,11 +3,9 @@
 # VALEURS PAR DÉFAUT — Sûres, committées dans git
 # ============================================================
 
-# === Firewall UFW ===
-firewall_allowed_ports:
-  - { port: 22, proto: tcp, rule: limit }
-  - { port: 80, proto: tcp, rule: allow }
-  - { port: 443, proto: tcp, rule: allow }
+# ===# Firewall (UFW)
+firewall_enabled: true
+firewall_allowed_ports: []
 
 # === Fail2ban ===
 fail2ban_bantime: "10m"
@@ -31,7 +29,7 @@ ssh_print_last_log: true
 ssh_print_motd: true
 ssh_banner: false
 
-# 🚀 MAGIE JINJA2 : Configuration dynamique
+# Configuration dynamique
 # On construit automatiquement la liste AllowUsers à partir
 # de la liste 'users' définie par l'utilisateur.
 #
@@ -39,5 +37,5 @@ ssh_banner: false
 # ALORS ssh_allow_users = ['alice', 'bob']
 ssh_allow_users: "{{ users | default([]) | map(attribute='name') | list }}"
 
-# ⚠️ VARIABLE OBLIGATOIRE MANQUANTE :
+# VARIABLE OBLIGATOIRE MANQUANTE :
 #   - users

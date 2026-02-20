@@ -1,0 +1,8 @@
+---
+firewall_allowed_ports:
+  - { port: 80, proto: tcp, rule: allow }
+  - { port: 443, proto: tcp, rule: allow }
+  # SSH allowed only from Bastion Private IP
+  - { port: 22, proto: tcp, rule: allow, src: "{{ hostvars[groups['bastion'][0]]['private_ip'] }}" }
+  # Node Exporter allowed only from Monitoring Private IP
+  - { port: 9100, proto: tcp, rule: allow, src: "{{ hostvars[groups['monitoring'][0]]['private_ip'] }}" }

@@ -52,11 +52,12 @@ variable "os_version" {
 variable "vms" {
   description = "Details of VMs"
   type        = list(object({
-    name = string
+    name       = string
     cpu_number = number
     ram_number = number
-    disk_size = number
-    network = string
+    disk_size  = number
+    network    = string
+    public_ip  = bool
   }))
 }
 

@@ -1,4 +1,44 @@
-%{ for key, vm in vms ~} 
-[${vm.name}]
-${public_ips[key].address} username=${vm.username}
+[bastion]
+%{ for key, vm in vms ~}
+%{ if can(regex("bastion", vm.name)) ~}
+# Bastion: accessible via Public IP (lookup in public_ips)
+${vm.name} ansible_host=${public_ips[key].address} private_ip=${vm.private_ipv4} ansible_user=${vm.username}
+%{ endif ~}
+%{ endfor ~}
+
+[app]
+%{ for key, vm in vms ~}
+%{ if can(regex("app", vm.name)) ~}
+# App: accessible via SSH (Private IP) through Bastion
+${vm.name} ansible_host=${vm.private_ipv4} private_ip=${vm.private_ipv4} ansible_user=${vm.username}
+%{ endif ~}
+%{ endfor ~}
+
+[monitoring]
+%{ for key, vm in vms ~}
+%{ if can(regex("monitoring", vm.name)) ~}
+# Monitoring: accessible via SSH (Private IP) through Bastion
+${vm.name} ansible_host=${vm.private_ipv4} private_ip=${vm.private_ipv4} ansible_user=${vm.username}
+%{ endif ~}
+%{ endfor ~}
+
+[all:vars]
+ansible_user=vde
+ansible_ssh_private_key_file=~/.ssh/id_ed25519_denvr_cesi_vde
+ansible_python_interpreter=/usr/bin/python3
+
+[app:vars]
+# ProxyJump via Bastion Public IP
+%{ for key, vm in vms ~}
+%{ if can(regex("bastion", vm.name)) ~}
+ansible_ssh_common_args='-o ProxyJump=${vm.username}@${public_ips[key].address}'
+%{ endif ~}
+%{ endfor ~}
+
+[monitoring:vars]
+# ProxyJump via Bastion Public IP
+%{ for key, vm in vms ~}
+%{ if can(regex("bastion", vm.name)) ~}
+ansible_ssh_common_args='-o ProxyJump=${vm.username}@${public_ips[key].address}'
+%{ endif ~}
 %{ endfor ~}

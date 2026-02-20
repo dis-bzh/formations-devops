@@ -1,0 +1,3 @@
+---
+firewall_allowed_ports:
+  - { port: 22, proto: tcp, rule: limit }

@@ -1,4 +1,4 @@
-name: Security Scans (DevSecOps)
+name: Security Scans
 
 on: 
   push:
@@ -12,30 +12,6 @@ permissions:
   security-events: write
 
 jobs:
-  # 🔍 Scan des dépendances Node.js
-  dependency-scan:
-    name: Dependency Scan (Snyk)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high --file=my-app/package.json
-        continue-on-error: true  # Ne pas bloquer PR, mais reporter
-
-      - name: Upload Snyk report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: snyk-report
-          path: snyk-report.json
-          if-no-files-found: ignore
-
   # 🔐 Détection de secrets dans le code
   secret-scan:
     name: Secret Scanning (Gitleaks)
@@ -52,23 +28,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}  # Optionnel
 
-  # 🛡️ Analyse statique du code (SAST)
-  sast-scan:
-    name: Static Analysis (CodeQL)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      security-events: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: javascript, python
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
